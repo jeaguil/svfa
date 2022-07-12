@@ -1,5 +1,6 @@
 import pandas as pd
 import argparse
+import logging
 import sfre.const as sfre_consts
 
 from sfre.split_data import SplitDataFile
@@ -11,6 +12,13 @@ class DataFileError(BaseException):
 
 
 if __name__ == "__main__":
+
+    logging.basicConfig(
+        level=logging.INFO, handlers=[
+            logging.FileHandler(
+                sfre_consts.STATIC_ROOT_PARENT_PATH / "logs/main.log"),
+            logging.StreamHandler()
+        ])
 
     parser = argparse.ArgumentParser(description="Solar Farm Data Analysis.")
     parser.add_argument("--split", "-s", action="store", default=None,
@@ -37,7 +45,11 @@ if __name__ == "__main__":
             columns=sfre_consts.ECMWF_COLUMNS)
 
         if Path(sfre_consts.OUTFILE_TRAIN).is_file() and Path(sfre_consts.OUTFILE_TEST).is_file():
+            logging.info(
+                "Found local training and testing files. Collecting necessary information.")
             training_set = pd.read_csv(sfre_consts.OUTFILE_TRAIN)
             testing_set = pd.read_csv(sfre_consts.OUTFILE_TEST)
         else:
+            logging.info(
+                "Unable to find training or testing files. Attempting to construct with cli arguments.")
             training_set, testing_set = s.split_data(ECMWF_Df, choice=None)
