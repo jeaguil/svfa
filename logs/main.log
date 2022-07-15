@@ -1,2 +1,0 @@
-INFO:root:Found local training and testing files. Collecting necessary information.
-INFO:root:Unable to find training and testing files. Attempting to construct with cli arguments.
