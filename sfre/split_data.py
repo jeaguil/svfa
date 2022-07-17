@@ -6,6 +6,7 @@ import sfre.const as sfre_consts
 
 
 class SplitDataFile():
+
     def __init__(self, optional_args=None):
         self.optional_args = optional_args
 
@@ -16,19 +17,18 @@ class SplitDataFile():
             """Default when there is not split in args.
 
             Split in interval date range. ECMWF Data ranges from 2012/04/01 to 2014/07/01.
-            Default: 
+            Default:
                 Training set: 2012/04/01 to 2013/07/01
                 Testing set: 2013/07/01 to 2014/07/01
 
                 Hour intervals.
             """
-            training_set = _default_find_range(_ECMWF,
-                                               "2012/04/01", "2013/07/01", sfre_consts.OUTFILE_TRAIN)
-
-            testing_set = _default_find_range(
+            _tr_set = _default_find_range(
+                _ECMWF, "2012/04/01", "2013/07/01", sfre_consts.OUTFILE_TRAIN)
+            _te_set = _default_find_range(
                 _ECMWF, "2013/07/01", "2014/07/01", sfre_consts.OUTFILE_TEST)
 
-            return training_set, testing_set
+        return _tr_set, _te_set
 
 
 def _default_find_range(_data_file, start, end, out_file: str) -> pd.DataFrame:
