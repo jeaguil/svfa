@@ -51,6 +51,13 @@ def start(args_dict):
 
 if __name__ == "__main__":
 
+    main_log_file = sfre_consts.STATIC_ROOT_PARENT_PATH / "logs/main.log"
+    if not Path(main_log_file).is_file():
+        p = Path(sfre_consts.STATIC_ROOT_PARENT_PATH / "logs/")
+        p.mkdir(parents=True, exist_ok=True)
+        fn = "main.log"
+        filepath = p / fn
+
     logging.basicConfig(
         level=logging.INFO, handlers=[
             logging.FileHandler(

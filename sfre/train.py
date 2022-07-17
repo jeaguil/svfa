@@ -3,7 +3,7 @@ import numpy as np
 
 
 class TrainModel(object):
-    def __init__(self, training_set, hours_ahead):
+    def __init__(self, training_set, hours_ahead, selected_model):
         self.training_set = training_set
 
         self.x = self.construct_x(training_set.drop(["POWER"], axis=1))
