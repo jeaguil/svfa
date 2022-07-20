@@ -46,7 +46,7 @@ def start(args_dict):
         logging.info(
             "Begin training model with found training set and selected model."
         )
-        TrainModel(training_set, hours_ahead=24, selected_model=None)
+        t = TrainModel(training_set, hours_ahead=24)
 
 
 if __name__ == "__main__":
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO, handlers=[
             logging.FileHandler(
-                sfre_consts.STATIC_ROOT_PARENT_PATH / "logs/main.log"),
+                main_log_file),
             logging.StreamHandler()
         ])
 

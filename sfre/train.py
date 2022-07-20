@@ -3,16 +3,32 @@ import numpy as np
 
 
 class TrainModel(object):
-    def __init__(self, training_set, hours_ahead, selected_model):
+    def __init__(self, training_set, hours_ahead):
         self.training_set = training_set
 
-        self.x = self.construct_x(training_set.drop(["POWER"], axis=1))
-        self.y = self.construct_y(hours_ahead)
+        self.training_time_Df = self.construct_time_Df(hours_ahead)
+
+        self.y = self.construct_y()
+
+        self.x = self.construct_x(
+            training_set.drop(["POWER"], axis=1))
 
     def construct_x(self, ts):
-        pass
+        diff = ts.shape[0] - self.y.shape[0]
+        x = ts.copy()
+        x.drop(x.tail(diff).index, inplace=True)
+        return x
 
-    def construct_y(self, hours_ahead):
+    def construct_y(self):
+        ts_cp = self.training_set.copy()
+        tt_df_cp = self.training_time_Df["TIMESTAMP"].copy()
+        tt_df_cp = tt_df_cp.astype({"TIMESTAMP": str})
+        tt_l = tt_df_cp.values.tolist()
+        res = ts_cp.loc[ts_cp["TIMESTAMP"].isin(tt_l)]
+        res_power = res["POWER"].reset_index()
+        return res_power.drop(["index"], axis=1)
+
+    def construct_time_Df(self, hours_ahead):
         res = []
         ts_copy = self.training_set.copy()
         all_solar_zones = ts_copy.groupby(["ZONEID"])
@@ -30,4 +46,5 @@ class TrainModel(object):
             res.append(indev_yts)
 
         res = pd.concat(res, ignore_index=True)
+        res = res.drop(["index", "Exists"], axis=1)
         return res
