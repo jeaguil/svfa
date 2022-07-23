@@ -1,5 +1,20 @@
+from functools import wraps
+import time
 import pandas as pd
 import numpy as np
+
+from sfre import const
+
+
+def timer_fn(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        before = time.time()
+        fn(*args, **kwargs)
+        print("{} took: {} seconds".format(
+            fn.__name__.upper(), time.time() - before))
+
+    return wrapper
 
 
 class TrainModel(object):
@@ -48,3 +63,14 @@ class TrainModel(object):
         res = pd.concat(res, ignore_index=True)
         res = res.drop(["index", "Exists"], axis=1)
         return res
+
+    def output_training_Y_df(self):
+        self.y.to_csv(const.OUTFILE_TRAIN_Y)
+
+    def output_training_X_df(self):
+        self.x.to_csv(const.OUTFILE_TRAIN_X)
+
+    @timer_fn
+    def train(self):
+        """Train model."""
+        pass

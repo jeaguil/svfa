@@ -33,7 +33,7 @@ def start(args_dict):
     else:
         if Path(sfre_consts.OUTFILE_TRAIN).is_file() and Path(sfre_consts.OUTFILE_TEST).is_file():
             logging.info(
-                "Found local training and testing files. Collecting necessary information.")
+                "Found local training and testing files. Collecting necessary information...")
             training_set = pd.read_csv(sfre_consts.OUTFILE_TRAIN)
             testing_set = pd.read_csv(sfre_consts.OUTFILE_TEST)
         else:
@@ -42,11 +42,26 @@ def start(args_dict):
             s = SplitDataFile(optional_args=args_dict["split"])
             training_set, testing_set = s.split_data(ECMWF_Df, choice=None)
 
+    t = None
+    if args_dict["fitTrain"]:
+        logging.info(
+            "Generating X and Y csv files used for training."
+        )
+        t = TrainModel(training_set, hours_ahead=24)
+
+        if not Path(sfre_consts.OUTFILE_TRAIN_X).is_file():
+            t.output_training_X_df()
+        if not Path(sfre_consts.OUTFILE_TRAIN_Y).is_file():
+            t.output_training_Y_df()
+
     if args_dict["train"]:
         logging.info(
             "Begin training model with found training set and selected model."
         )
-        t = TrainModel(training_set, hours_ahead=24)
+        if t is None:
+            t = TrainModel(training_set, hours_ahead=24)
+
+        t.train()
 
 
 if __name__ == "__main__":
@@ -65,15 +80,15 @@ if __name__ == "__main__":
             logging.StreamHandler()
         ])
 
-    _model_choices = ["Default", "Temp"]
-
     parser = argparse.ArgumentParser(description="Solar Farm Data Analysis.")
     parser.add_argument("--split", "-s", action="store", default=None,
                         help="Split data based on optional arguments. (default: Split in set date range)")
     parser.add_argument("--train", "-t", action="store_true")
     parser.add_argument("--no-train", "-nt", dest="train",
                         action="store_false")
-    parser.set_defaults(train=False)
+    parser.add_argument("--fitTrain", "-ft", action="store_true",
+                        help="Output training X and training Y dataframes into CSV files.")
+    parser.set_defaults(train=False, fitTrain=False)
     args = parser.parse_args()
     args_dict = vars(args)
 

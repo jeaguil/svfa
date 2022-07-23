@@ -24,3 +24,6 @@ ECMWF_COLUMNS = [
 
 OUTFILE_TRAIN = DATA_FOLDER / "training_set.csv"
 OUTFILE_TEST = DATA_FOLDER / "testing_set.csv"
+
+OUTFILE_TRAIN_X = DATA_FOLDER / "X_training_df.csv"
+OUTFILE_TRAIN_Y = DATA_FOLDER / "Y_training_df.csv"
