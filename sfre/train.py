@@ -5,19 +5,17 @@ import numpy as np
 
 from sfre import const
 
+from sklearn.pipeline import make_pipeline
 
-def timer_fn(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        before = time.time()
-        fn(*args, **kwargs)
-        print("{} took: {} seconds".format(
-            fn.__name__.upper(), time.time() - before))
-
-    return wrapper
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MaxAbsScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import QuantileTransformer
+from sklearn.preprocessing import PowerTransformer
 
 
-class TrainModel(object):
+class TrainModelParams(object):
     def __init__(self, training_set, hours_ahead):
         self.training_set = training_set
 
@@ -70,7 +68,13 @@ class TrainModel(object):
     def output_training_X_df(self):
         self.x.to_csv(const.OUTFILE_TRAIN_X)
 
-    @timer_fn
-    def train(self):
-        """Train model."""
-        pass
+
+def timer_fn(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        before = time.time()
+        fn(*args, **kwargs)
+        print("{} took: {} seconds".format(
+            fn.__name__.upper(), time.time() - before))
+
+    return wrapper

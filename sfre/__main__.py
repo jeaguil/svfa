@@ -1,10 +1,13 @@
+#!/usr/bin/env python
+
 import pandas as pd
 import argparse
 import logging
 import sfre.const as sfre_consts
+import sfre.train as sfret
 
 from sfre.split_data import SplitDataFile
-from sfre.train import TrainModel
+from sfre.train import TrainModelParams
 from pathlib import Path
 
 
@@ -12,7 +15,38 @@ class DataFileError(BaseException):
     pass
 
 
-def start(args_dict):
+if __name__ == "__main__":
+
+    main_log_file = sfre_consts.STATIC_ROOT_PARENT_PATH / "logs/main.log"
+    if not Path(main_log_file).is_file():
+        p = Path(sfre_consts.STATIC_ROOT_PARENT_PATH / "logs/")
+        p.mkdir(parents=True, exist_ok=True)
+        fn = "main.log"
+        filepath = p / fn
+
+    logging.basicConfig(
+        level=logging.INFO, handlers=[
+            logging.FileHandler(
+                main_log_file),
+            logging.StreamHandler()
+        ])
+
+    _split_choices = ["d"]
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--split", action="store", default=None,
+                        help=": Split data based on optional arguments. (default: Split in set date range)",
+                        choices=_split_choices)
+    parser.add_argument("-t", "--train", action="store_true",
+                        help=": Train machine learning model.")
+    parser.add_argument("-st", "--skipTraining", dest="train",
+                        action="store_false", help=": Skip training the machine learning model.")
+    parser.add_argument("-ot", "--outTrainingSets", action="store_true",
+                        help=": Output training X and training Y set dataframes into CSV files.")
+    parser.set_defaults(train=False, outTrainingSets=False)
+    args = parser.parse_args()
+    args_dict = vars(args)
+
     if sfre_consts.ECMWF.is_file():
         ECMWF_Df = pd.read_csv(sfre_consts.ECMWF)
     else:
@@ -33,7 +67,7 @@ def start(args_dict):
     else:
         if Path(sfre_consts.OUTFILE_TRAIN).is_file() and Path(sfre_consts.OUTFILE_TEST).is_file():
             logging.info(
-                "Found local training and testing files. Collecting necessary information...")
+                "Found local training and testing CSV files. Collecting necessary information...")
             training_set = pd.read_csv(sfre_consts.OUTFILE_TRAIN)
             testing_set = pd.read_csv(sfre_consts.OUTFILE_TEST)
         else:
@@ -42,54 +76,25 @@ def start(args_dict):
             s = SplitDataFile(optional_args=args_dict["split"])
             training_set, testing_set = s.split_data(ECMWF_Df, choice=None)
 
-    t = None
-    if args_dict["fitTrain"]:
+    training_model_parameters = None
+    if args_dict["outTrainingSets"]:
+
         logging.info(
-            "Generating X and Y csv files used for training."
+            "Output X and Y training sets to CSV files to data folder."
         )
-        t = TrainModel(training_set, hours_ahead=24)
+
+        training_model_parameters = TrainModelParams(
+            training_set, hours_ahead=24)
 
         if not Path(sfre_consts.OUTFILE_TRAIN_X).is_file():
-            t.output_training_X_df()
+            training_model_parameters.output_training_X_df()
         if not Path(sfre_consts.OUTFILE_TRAIN_Y).is_file():
-            t.output_training_Y_df()
+            training_model_parameters.output_training_Y_df()
 
     if args_dict["train"]:
         logging.info(
             "Begin training model with found training set and selected model."
         )
-        if t is None:
-            t = TrainModel(training_set, hours_ahead=24)
-
-        t.train()
-
-
-if __name__ == "__main__":
-
-    main_log_file = sfre_consts.STATIC_ROOT_PARENT_PATH / "logs/main.log"
-    if not Path(main_log_file).is_file():
-        p = Path(sfre_consts.STATIC_ROOT_PARENT_PATH / "logs/")
-        p.mkdir(parents=True, exist_ok=True)
-        fn = "main.log"
-        filepath = p / fn
-
-    logging.basicConfig(
-        level=logging.INFO, handlers=[
-            logging.FileHandler(
-                main_log_file),
-            logging.StreamHandler()
-        ])
-
-    parser = argparse.ArgumentParser(description="Solar Farm Data Analysis.")
-    parser.add_argument("--split", "-s", action="store", default=None,
-                        help="Split data based on optional arguments. (default: Split in set date range)")
-    parser.add_argument("--train", "-t", action="store_true")
-    parser.add_argument("--no-train", "-nt", dest="train",
-                        action="store_false")
-    parser.add_argument("--fitTrain", "-ft", action="store_true",
-                        help="Output training X and training Y dataframes into CSV files.")
-    parser.set_defaults(train=False, fitTrain=False)
-    args = parser.parse_args()
-    args_dict = vars(args)
-
-    start(args_dict)
+        if training_model_parameters is None:
+            training_model_parameters = TrainModelParams(
+                training_set, hours_ahead=24)
