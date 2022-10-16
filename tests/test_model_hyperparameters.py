@@ -8,6 +8,10 @@ from sklearn.ensemble import RandomForestRegressor
 from pathlib import Path
 import pandas as pd
 
+from utils import (check_for_training_files, X_full, Y_full,
+                   CustomAttributeError, setup_cli_logging,
+                   timer_fn)
+
 from sklearn.linear_model import Lasso
 from sklearn.linear_model import SGDRegressor
 from sklearn.linear_model import ElasticNet
@@ -22,15 +26,8 @@ training_data_csv = static_root_parent_path / "data/training_set.csv"
 training_df = pd.read_csv(training_data_csv)
 feature_names = list(training_df.columns)
 
-X_path = static_root_parent_path / "data/X_training_df.csv"
-X_full = pd.read_csv(X_path) if X_path.is_file() else None
-X_full = X_full.drop(["ZONEID", "TIMESTAMP"], axis=1)
 
-Y_path = static_root_parent_path / "data/Y_training_df.csv"
-Y_full = pd.read_csv(Y_path) if Y_path.is_file() else None
-Y_full = Y_full.drop(["Unnamed: 0"], axis=1)
-
-
+@timer_fn
 def _fit_and_search(parameters, model_fn):
     clf = GridSearchCV(model_fn(), parameters)
     clf.fit(X_full, Y_full.values.ravel())
@@ -44,6 +41,19 @@ def _fit_and_search(parameters, model_fn):
 
 
 if __name__ == "__main__":
+
+    setup_cli_logging()
+
+    # check if training sets are available
+    check_for_training_files()
+
+    try:
+        X_full = X_full.drop(["ZONEID", "TIMESTAMP"], axis=1)
+        Y_full = Y_full.drop(["Unnamed: 0"], axis=1)
+    except AttributeError:
+        """ NoneType object has no attribute 'drop' """
+        raise CustomAttributeError("\n \
+            Consider running ' python3 -m sfre --outTrainingSets ' in the base directory.")
 
     model_selections_parameters = [
         (RandomForestRegressor, {

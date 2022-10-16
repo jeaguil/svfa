@@ -6,7 +6,7 @@
  User guide from: https://scikit-learn.org/stable/auto_examples/preprocessing/plot_all_scaling.html#sphx-glr-auto-examples-preprocessing-plot-all-scaling-py
  """
 
-import time
+import logging
 import pandas as pd
 import numpy as np
 
@@ -21,17 +21,13 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import QuantileTransformer
 from sklearn.preprocessing import PowerTransformer
 
+from utils import check_for_training_files, setup_cli_logging
+
 
 static_root_parent_path = Path(__file__).resolve().parent.parent
 training_data_csv = static_root_parent_path / "data/training_set.csv"
 training_df = pd.read_csv(training_data_csv)
 feature_names = list(training_df.columns)
-
-X_path = static_root_parent_path / "data/X_training_df.csv"
-X_full = pd.read_csv(X_path) if X_path.is_file() else None
-
-Y_path = static_root_parent_path / "data/Y_training_df.csv"
-Y_full = pd.read_csv(Y_path) if Y_path.is_file() else None
 
 feature_mapping = {
     "VAR78": "Total column liquid water(tclw) measured in kg m^-2",
@@ -55,9 +51,9 @@ class DfReadingError(BaseException):
 
 
 def _cmp_scalars():
-    if X_full is None or Y_full is None:
-        raise DfReadingError(
-            "Unable to correctly read in X and Y sets used for training.")
+
+    # check if training sets are available
+    check_for_training_files()
 
     # Take only 2 features to make visualization easier.
     # Features [Any] for distributions.
@@ -202,4 +198,8 @@ def _make_plot(item_indx, distributions, features):
 
 
 if __name__ == "__main__":
+    setup_cli_logging()
+
     _cmp_scalars()
+
+    logging.info("\tScalar tests saved in scalar_tests folder")
