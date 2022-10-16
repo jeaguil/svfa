@@ -4,10 +4,10 @@ import pandas as pd
 import argparse
 import logging
 import sfre.const as sfre_consts
-import sfre.train as sfret
 
 from sfre.split_data import SplitDataFile
-from sfre.train import TrainModelParams
+from sfre.train import TrainModelParams, train
+from sfre.eval import eval
 from pathlib import Path
 
 
@@ -43,6 +43,8 @@ if __name__ == "__main__":
                         action="store_false", help=": Skip training the machine learning model.")
     parser.add_argument("-ot", "--outTrainingSets", action="store_true",
                         help=": Output training X and training Y set dataframes into CSV files.")
+    parser.add_argument("-e", "--evaluate", action="store_true",
+                        help=": Test and evaluate trainined model.")
     parser.set_defaults(train=False, outTrainingSets=False)
     args = parser.parse_args()
     args_dict = vars(args)
@@ -98,3 +100,9 @@ if __name__ == "__main__":
         if training_model_parameters is None:
             training_model_parameters = TrainModelParams(
                 training_set, hours_ahead=24)
+
+        train(training_model_parameters.x, training_model_parameters.y)
+
+    if args_dict["evaluate"]:
+        logging.info("Evaluating model...")
+        eval(testing_set)

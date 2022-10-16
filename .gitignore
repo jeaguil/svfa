@@ -6,3 +6,8 @@ models/
 *.csv
 *.log
 *.sh
+
+/svfa-env
+/res
+
+model.pkl

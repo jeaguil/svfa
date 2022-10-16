@@ -27,3 +27,7 @@ OUTFILE_TEST = DATA_FOLDER / "testing_set.csv"
 
 OUTFILE_TRAIN_X = DATA_FOLDER / "X_training_df.csv"
 OUTFILE_TRAIN_Y = DATA_FOLDER / "Y_training_df.csv"
+
+RES_FOLDER = STATIC_ROOT_PARENT_PATH / "res"
+
+OUTFILE_MODEL_RES = RES_FOLDER / "res.csv"
