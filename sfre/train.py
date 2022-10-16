@@ -2,17 +2,11 @@ from functools import wraps
 import time
 import pandas as pd
 import numpy as np
+import joblib
 
 from sfre import const
 
-from sklearn.pipeline import make_pipeline
-
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import MaxAbsScaler
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import QuantileTransformer
-from sklearn.preprocessing import PowerTransformer
+from sklearn.ensemble import RandomForestRegressor
 
 
 class TrainModelParams(object):
@@ -78,3 +72,19 @@ def timer_fn(fn):
             fn.__name__.upper(), time.time() - before))
 
     return wrapper
+
+
+@timer_fn
+def train(x_full, y_full):
+
+    try:
+        x_full = x_full.drop(["ZONEID", "TIMESTAMP"], axis=1)
+    except AttributeError:
+        """ NoneType object has no attribute 'drop' """
+        return
+
+    regr = RandomForestRegressor()
+    regr.fit(x_full, y_full.values.ravel())
+
+    # Save trained model
+    joblib.dump(regr, "model.pkl")
